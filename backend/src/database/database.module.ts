@@ -1,26 +1,37 @@
+
 import { Global, Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Connection, createConnection } from 'mongoose';
-import { DatabaseShutdownService } from './database-shutdown.service';
-import { DATABASE_CONNECTION } from './database.constants';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+
+import { Film } from './film.entity';
+import { Schedule } from './schedule.entity';
 
 @Global()
 @Module({
-  providers: [
-    {
-      provide: DATABASE_CONNECTION,
+  imports: [
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (config: ConfigService): Promise<Connection> => {
-        const driver = config.get<string>('DATABASE_DRIVER') ?? 'mongodb';
-        if (driver !== 'mongodb') {
-          throw new Error(`Неподдерживаемый драйвер базы данных: ${driver}`);
-        }
-        const uri = config.get<string>('DATABASE_URL') ?? 'mongodb://localhost:27017/prac';
-        return createConnection(uri).asPromise();
+      useFactory: (config: ConfigService): TypeOrmModuleOptions => {
+        const url = new URL(
+          config.getOrThrow<string>('DATABASE_URL'),
+        );
+
+        return {
+          type: 'postgres',
+          host: url.hostname,
+          port: Number(url.port || 5432),
+          database: url.pathname.slice(1),
+          username: config.getOrThrow<string>('DATABASE_USERNAME'),
+          password: config.getOrThrow<string>('DATABASE_PASSWORD'),
+          entities: [Film, Schedule],
+          synchronize: false,
+        };
       },
-    },
-    DatabaseShutdownService,
+    }),
+    TypeOrmModule.forFeature([Film, Schedule]),
   ],
-  exports: [DATABASE_CONNECTION],
+  exports: [TypeOrmModule],
 })
 export class DatabaseModule {}
+
