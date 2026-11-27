@@ -21,9 +21,9 @@ export class Schedule {
   @Column('double precision')
   price: number;
 
-  // Оригинальная схема: пустая строка или места через запятую.
-  @Column('text')
-  taken: string;
+  // TypeORM преобразует текст из SQL-таблицы в массив занятых мест.
+  @Column('simple-array')
+  taken: string[];
 
   @Column('uuid', { name: 'filmId', nullable: true })
   filmId: string | null;

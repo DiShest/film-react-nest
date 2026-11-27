@@ -12,9 +12,9 @@ export class Film {
   @Column('varchar')
   director: string;
 
-  // В оригинальной схеме Практикума tags хранится как text, а не text[].
-  @Column('text')
-  tags: string;
+  // В PostgreSQL остаётся колонка text, в TypeORM используется массив строк.
+  @Column('simple-array')
+  tags: string[];
 
   @Column('varchar')
   image: string;

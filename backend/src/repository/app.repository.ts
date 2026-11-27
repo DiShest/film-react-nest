@@ -13,15 +13,6 @@ interface BookingGroup {
   seats: string[];
 }
 
-// В оригинальной SQL-схеме tags и taken — строки с разделителем-запятой.
-// API по-прежнему ожидает массивы; DTO и сервисы менять не требуется.
-function fromCsv(value: string | null | undefined): string[] {
-  return (value ?? '')
-    .split(',')
-    .map((part) => part.trim())
-    .filter(Boolean);
-}
-
 @Injectable()
 export class AppRepository implements FilmsRepository {
   constructor(
@@ -36,7 +27,7 @@ export class AppRepository implements FilmsRepository {
       id,
       rating,
       director,
-      tags: fromCsv(tags),
+      tags: tags ?? [],
       image,
       cover,
       title,
@@ -94,7 +85,7 @@ export class AppRepository implements FilmsRepository {
           throw new BadRequestException({ error: 'Сеанс не найден' });
         }
 
-        const booked = fromCsv(schedule.taken);
+        const booked = schedule.taken ?? [];
         for (const place of group.seats) {
           const [row, seat] = place.split(':').map(Number);
           if (
@@ -113,7 +104,7 @@ export class AppRepository implements FilmsRepository {
         }
 
         sessions.set(key, this.toSessionDto(schedule));
-        schedule.taken = [...booked, ...group.seats].join(',');
+        schedule.taken = [...booked, ...group.seats];
         await scheduleRepo.save(schedule);
       }
 
@@ -130,6 +121,6 @@ export class AppRepository implements FilmsRepository {
 
   private toSessionDto(session: Schedule): SessionDto {
     const { id, daytime, hall, rows, seats, price, taken } = session;
-    return { id, daytime, hall, rows, seats, price, taken: fromCsv(taken) };
+    return { id, daytime, hall, rows, seats, price, taken: taken ?? [] };
   }
 }

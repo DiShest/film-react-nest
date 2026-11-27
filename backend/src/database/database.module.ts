@@ -16,9 +16,13 @@ import { Schedule } from './schedule.entity';
         const url = new URL(
           config.getOrThrow<string>('DATABASE_URL'),
         );
+        const driver = config.getOrThrow<string>('DATABASE_DRIVER');
+        if (driver !== 'postgres') {
+          throw new Error(`Unsupported database driver: ${driver}`);
+        }
 
         return {
-          type: 'postgres',
+          type: driver,
           host: url.hostname,
           port: Number(url.port || 5432),
           database: url.pathname.slice(1),
