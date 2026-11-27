@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 export interface AppConfigDatabase {
   driver: string;
   url: string;
+  username: string;
+  password: string;
 }
 
 export interface AppConfig {
@@ -16,8 +18,10 @@ export const configProvider = {
   useFactory: (config: ConfigService): AppConfig => ({
     port: Number(config.getOrThrow<string>('PORT')),
     database: {
-      driver: config.get<string>('DATABASE_DRIVER') ?? 'mongodb',
-      url: config.get<string>('DATABASE_URL') ?? 'mongodb://localhost:27017/prac',
+      driver: config.getOrThrow<string>('DATABASE_DRIVER'),
+      url: config.getOrThrow<string>('DATABASE_URL'),
+      username: config.getOrThrow<string>('DATABASE_USERNAME'),
+      password: config.getOrThrow<string>('DATABASE_PASSWORD'),
     },
   }),
 };
